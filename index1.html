@@ -12,7 +12,11 @@
 
   <!-- IMGUR NOTE: if any image fails to load, try swapping .png <-> .jpg in the i.imgur.com URL -->
 
-  <link rel="icon" type="image/png" href="https://i.imgur.com/fFUcjhU.png" />
+  <!-- Favicon: put these files in your repo root (same folder as index.html) -->
+  <link rel="icon" href="./favicon.ico?v=3" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png?v=3" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png?v=3" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=3" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -226,7 +230,7 @@
       border: 1px solid rgba(255,255,255,.10);
       background:
         linear-gradient(to bottom, rgba(6,7,11,.88), rgba(6,7,11,.55), rgba(6,7,11,.94)),
-        url("https://i.imgur.com/fFUcjhU.png");
+        url("https://i.imgur.com/1hlCBzJ.png");
       background-size: cover;
       background-position: center;
       z-index:1;
@@ -409,7 +413,7 @@
     .shot:hover{ border-color: rgba(245,158,11,.26); transform: translateY(-2px); }
 
     .s1{ background-image: url("https://i.imgur.com/fFUcjhU.png"); }
-    .s2{ background-image: url("https://i.imgur.com/0KdsBhp.png"); }
+    .s2{ background-image: url("https://i.imgur.com/OCKfsgV.png"); }
     .s3{ background-image: url("https://i.imgur.com/U1GhKsO.png"); }
 
     .fleet-banner{
@@ -423,7 +427,7 @@
       box-shadow: var(--shadow);
       background:
         linear-gradient(to right, rgba(6,7,11,.94), rgba(6,7,11,.55), rgba(6,7,11,.94)),
-        url("https://i.imgur.com/OCKfsgV.png");
+        url("https://i.imgur.com/0KdsBhp.png");
       background-size: cover;
       background-position: center;
       margin: 16px 0 70px;
@@ -730,46 +734,7 @@
       </div>
     </section>
 
-    <section class="section" id="gallery" aria-label="Media">
-      <h2>Life in GODMC</h2>
-      <p class="lead">Three clean hero shots (no duplicates). Swap these with your own screenshots later.</p>
-
-      <div class="photo-strip">
-        <div class="shot s1" data-label="Explosion"></div>
-        <div class="shot s2" data-label="Fleet Fight"></div>
-        <div class="shot s3" data-label="Close Quarters"></div>
-      </div>
-    </section>
-
-    <section class="fleet-banner" aria-label="Fleet banner">
-      <div class="fleet-text">
-        <h2>Brotherhood under fire.</h2>
-        <p style="color:var(--silver); opacity:.9; font-weight:700; margin:0;">
-          We learn from losses, celebrate wins, and keep it fun—whether we’re blowing things up or being blown up.
-        </p>
-      </div>
-    </section>
-
-    <section class="section" id="killboard" aria-label="Killboard">
-      <h2>Killboard</h2>
-      <p class="lead">Latest kills for GODMC (kills only).</p>
-
-      <div class="embed-card">
-        <div class="embed-head">
-          <h3>zKillboard — GODMC Kills</h3>
-          <a class="btn small secondary" href="https://zkillboard.com/corporation/99014700/kills/" target="_blank" rel="noopener">Open on zKillboard</a>
-        </div>
-        <iframe
-          class="embed-frame"
-          id="zkb-embed"
-          src="https://zkillboard.com/corporation/99014700/kills/"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"></iframe>
-        <div class="muted" style="padding:10px 14px;">
-          If the killboard looks blank, click inside the embed once (zKillboard shows a click-to-activate overlay in iframes), or use the “Open on zKillboard” button.
-        </div>
-      </div>
-    </section>
+    
 
     <section class="section" id="values">
       <h2>What we believe in</h2>
@@ -814,6 +779,39 @@
             </a>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="section" id="gallery" aria-label="Media">
+      <h2>Life in GODMC</h2>
+      <p class="lead">Three clean hero shots (no duplicates). Swap these with your own screenshots later.</p>
+
+      <div class="photo-strip">
+        <div class="shot s1" data-label="Explosion"></div>
+        <div class="shot s2" data-label="Fleet Fight"></div>
+        <div class="shot s3" data-label="Close Quarters"></div>
+      </div>
+    </section>
+
+    <section class="fleet-banner" aria-label="Fleet banner">
+      <div class="fleet-text">
+        <h2>Brotherhood under fire.</h2>
+        <p style="color:var(--silver); opacity:.9; font-weight:700; margin:0;">
+          We learn from losses, celebrate wins, and keep it fun—whether we’re blowing things up or being blown up.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="killboard" aria-label="Killboard">
+      <h2>Killboard</h2>
+      <p class="lead">Latest kills for GODMC (kills only).</p>
+
+      <div class="embed-card">
+        <div class="embed-head">
+          <h3>zKillboard — GODMC Kills</h3>
+          <a class="btn small secondary" href="https://zkillboard.com/corporation/99014700/kills/" target="_blank" rel="noopener">Open on zKillboard</a>
+        </div>
+        <div id="zkb-feed" class="zkb-feed"><div class="muted">Loading latest kills…</div></div>
       </div>
     </section>
 
@@ -897,85 +895,117 @@
     // Footer year
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // Reveal animations (safe fallback if IntersectionObserver isn't available)
+    // Reveal animations
     const els = document.querySelectorAll('.card, .panel, .values, .join, .ceo-card, .shot, .fleet-banner, .embed-card');
     els.forEach(el => el.classList.add('reveal'));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('show'); });
+    }, { threshold: 0.12 });
+    els.forEach(el => io.observe(el));
 
-    try {
-      if (!('IntersectionObserver' in window)) throw new Error('no IntersectionObserver');
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('show'); });
-      }, { threshold: 0.12 });
-      els.forEach(el => io.observe(el));
-    } catch (e) {
-      // If observers are blocked/unsupported, just show everything.
-      els.forEach(el => el.classList.add('show'));
-    }
-
-    // Twitch embed (auto parent= based on hostname / referrer / top frame)
+    // Twitch embed (auto parent= based on hostname)
     (function () {
       const iframe = document.getElementById('twitch-embed');
       if (!iframe) return;
 
+      const host = window.location.hostname || 'localhost';
+      const parents = [host];
+
+      // Cover both www + non-www automatically
+      if (host.startsWith('www.')) parents.push(host.slice(4));
+      else parents.push('www.' + host);
+
+      const uniqParents = Array.from(new Set(parents.filter(Boolean)));
+      const parentParams = uniqParents.map(p => 'parent=' + encodeURIComponent(p)).join('&');
+
       const channel = 'eve_yg';
-
-      // Collect likely parent domains required by Twitch.
-      // Twitch requires one parent= per domain where the embed is used.
-      const parents = new Set();
-
-      const addHost = (h) => {
-        if (!h) return;
-        h = String(h).trim().toLowerCase();
-        if (!h) return;
-        parents.add(h);
-        // add/remove www variant
-        if (h.startsWith('www.')) parents.add(h.slice(4));
-        else parents.add('www.' + h);
-      };
-
-      // Current page host
-      addHost(window.location.hostname);
-
-      // If the page is embedded inside another frame (common with website builders),
-      // try to add the top-frame host as well.
-      try { addHost(window.top.location.hostname); } catch (e) {}
-
-      // Also add the referrer host (some builders load your page from a different domain wrapper)
-      try {
-        if (document.referrer) addHost(new URL(document.referrer).hostname);
-      } catch (e) {}
-
-      // Fallback for local previews
-      if (parents.size === 0) addHost('localhost');
-
-      const parentParams = Array.from(parents).map(p => 'parent=' + encodeURIComponent(p)).join('&');
       iframe.src = `https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&${parentParams}&autoplay=false&muted=true`;
 
-      const showNote = (msg) => {
+      // Twitch embeds often require HTTPS
+      if (window.location.protocol !== 'https:' && host !== 'localhost' && host !== '127.0.0.1') {
         const card = iframe.closest('.embed-card');
-        if (!card || card.querySelector('.twitch-note')) return;
-        const note = document.createElement('div');
-        note.className = 'twitch-note muted';
-        note.style.padding = '10px 14px';
-        note.textContent = msg;
-        card.appendChild(note);
-      };
-
-      // Twitch embeds generally require SSL on real domains
-      if (window.location.protocol !== 'https:' && window.location.hostname) {
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-          showNote('If Twitch stays blank: make sure your site is served over HTTPS (SSL), and that the parent domain matches your real site domain. Use the “Open on Twitch” button as a fallback.');
+        if (card && !card.querySelector('.twitch-note')) {
+          const note = document.createElement('div');
+          note.className = 'twitch-note muted';
+          note.style.padding = '10px 14px';
+          note.textContent = 'If Twitch stays blank: Twitch embeds usually require HTTPS. Use the “Open on Twitch” button.';
+          card.appendChild(note);
         }
       }
-
-      // If the iframe stays blank for a few seconds, show a parent/SSL hint.
-      window.setTimeout(() => {
-        showNote('Still blank? Some site builders wrap your page in another domain. This page auto-adds current host, top-frame host, and referrer host to the Twitch parent= list.');
-      }, 4500);
     })();
 
-    // zKillboard embedded via iframe (no JS needed)
+    // zKillboard feed (uses zKB API, no iframe)
+(function () {
+  const box = document.getElementById('zkb-feed');
+  if (!box) return;
 
+  const corpId = '99014700';
+  const url = `https://zkillboard.com/api/kills/corporationID/${corpId}/`;
+  const REFRESH_MS = 120000; // 2 minutes
+
+  let inFlight = false;
+
+  async function loadZkbFeed() {
+    if (inFlight) return;
+    inFlight = true;
+
+    try {
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) {
+        box.innerHTML = '<div class="muted">No recent kills found right now.</div>';
+        return;
+      }
+
+      const list = document.createElement('ul');
+
+      data.slice(0, 10).forEach(k => {
+        const id = k.killmail_id ?? k.killID ?? k.killmailID;
+        const time = k.killmail_time ?? k.killTime ?? k.time;
+        const system = k.solar_system_name ?? k.solarSystemName ?? '';
+        const victim = k.victim?.character_name ?? k.victim?.characterName ?? 'Unknown victim';
+        const ship = k.victim?.ship_type_name ?? k.victim?.shipTypeName ?? '';
+        const value = k.zkb?.totalValue ?? k.zkb?.total_value ?? null;
+
+        const link = id ? `https://zkillboard.com/kill/${id}/` : `https://zkillboard.com/corporation/${corpId}/kills/`;
+        const metaParts = [];
+        if (system) metaParts.push(system);
+        if (time) metaParts.push(new Date(time).toLocaleString());
+        if (value) metaParts.push(Math.round(value).toLocaleString() + ' ISK');
+
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <a href="${link}" target="_blank" rel="noopener">
+            <b>${victim}</b>${ship ? ' — ' + ship : ''}
+          </a>
+          <span class="meta">${metaParts.join(' • ')}</span>
+        `;
+        list.appendChild(li);
+      });
+
+      // Add a small "Updated" line (optional, unobtrusive)
+      const updated = document.createElement('div');
+      updated.className = 'muted';
+      updated.style.marginTop = '10px';
+      updated.style.fontSize = '12px';
+      updated.textContent = 'Updated: ' + new Date().toLocaleTimeString();
+
+      box.innerHTML = '';
+      box.appendChild(list);
+      box.appendChild(updated);
+    } catch (err) {
+      box.innerHTML = '<div class="muted">Couldn’t load the zKillboard feed (blocked by browser/network). Use “Open on zKillboard”.</div>';
+    } finally {
+      inFlight = false;
+    }
+  }
+
+  // Initial load + auto-refresh every 2 minutes while the page is open
+  loadZkbFeed();
+  setInterval(loadZkbFeed, REFRESH_MS);
+})();
   </script>
 </body>
 </html>
