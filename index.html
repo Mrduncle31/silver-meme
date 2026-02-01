@@ -54,6 +54,27 @@
     a{color:inherit; text-decoration:none}
     .wrap{max-width:var(--max); margin:0 auto; padding:0 20px}
 
+    /* Accessibility */
+    .skip-link{
+      position:absolute; left:-999px; top:auto; width:1px; height:1px; overflow:hidden;
+    }
+    .skip-link:focus{
+      left:16px; top:16px; width:auto; height:auto; padding:10px 14px;
+      background:rgba(0,0,0,.7); border:1px solid var(--border); border-radius:12px;
+      z-index:9999;
+    }
+
+    /* Utility text */
+    .pill-text{color:var(--muted); font-weight:800;}
+    .tag-row{margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;}
+    .fleet-sub{color:var(--silver); opacity:.9; font-weight:700; margin:0;}
+    .accent-gold{color:var(--gold);}
+
+    /* Dynamic UI elements */
+    .twitch-note{padding:10px 14px;}
+    .kb-updated{margin-top:10px; font-size:12px;}
+
+
     .stars{
       position:fixed; inset:0; pointer-events:none; opacity:.16;
       background-image:
@@ -291,7 +312,7 @@
       margin: 0 0 20px;
       max-width: 72ch;
     }
-    .cta{display:flex; gap:12px; flex-wrap:wrap; margin-top:14px}
+    .cta{display:flex; gap:12px; flex-wrap:wrap; margin-top:16px}
 
     .panel{
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
@@ -646,18 +667,23 @@
     .zkb-feed .meta{ color: rgba(255,255,255,.65); font-size: 13px; white-space:nowrap; }
     
   </style>
+
+  <meta property="og:image" content="https://i.imgur.com/Rdknv68.png?v=5" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#06070b" />
 </head>
 
 <body>
-  <div class="stars"></div>
+    <a class="skip-link" href="#about">Skip to content</a>
+<div class="stars"></div>
 
   <header class="nav">
     <div class="wrap nav-inner">
       <a class="brand" href="#about" aria-label="GODMC home">
         <span class="logo-wrap" aria-hidden="true">
-          <img class="logo-mark" src="https://i.imgur.com/Rdknv68.png" alt="">
+          <img class="logo-mark" src="https://i.imgur.com/Rdknv68.png" alt="GODMC logo">
         </span>
-        <span>God’s Misguided Children <span style="color:var(--muted)">[GODMC]</span></span>
+        <span>God’s Misguided Children <span class="muted">[GODMC]</span></span>
       </a>
 
       <nav class="links" aria-label="Primary">
@@ -682,7 +708,7 @@
         <div>
           <div class="pill">
             <span class="tag gold">Recruiting</span>
-            <span style="color:var(--muted); font-weight:800;">English-speaking • Small-gang PvP • Newbro-friendly</span>
+            <span class="pill-text">English-speaking • Small-gang PvP • Newbro-friendly</span>
           </div>
 
           <h1>Fly smart. Fight together.</h1>
@@ -723,7 +749,7 @@
             </div>
           </div>
 
-          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+          <div class="tag-row">
             <span class="tag">Drama-free</span>
             <span class="tag">Team-first</span>
             <span class="tag gold">Learn by action</span>
@@ -772,8 +798,8 @@
         </div>
 
         <div class="join" id="join">
-          <h2 style="margin:0 0 8px;">Recruitment</h2>
-          <p class="lead" style="margin-bottom:10px;">
+          <h2>Recruitment</h2>
+          <p class="lead">
             Want to fly with purpose and get better fast? Join our Discord and we’ll get you set up.
           </p>
 
@@ -790,7 +816,7 @@
             <li>We’ll chat, answer questions, and get you into fleets.</li>
           </ol>
 
-          <div class="cta" style="margin-top:16px;">
+          <div class="cta">
             <a class="btn primary" href="https://discord.gg/tMWAseFwhM" target="_blank" rel="noopener">Join Discord</a>
             <a class="btn gold" href="https://www.eveonline.com/signup?invc=8e4f4b9b-ed23-48f6-9779-9a1909a95064" target="_blank" rel="noopener">
               Recruit Link (1M SP)
@@ -814,7 +840,7 @@
     <section class="fleet-banner" aria-label="Fleet banner">
       <div class="fleet-text">
         <h2>Brotherhood under fire.</h2>
-        <p style="color:var(--silver); opacity:.9; font-weight:700; margin:0;">
+        <p class="fleet-sub">
           We learn from losses, celebrate wins, and keep it fun—whether we’re blowing things up or being blown up.
         </p>
       </div>
@@ -866,7 +892,7 @@
           </p>
 
           <div class="ceo-quote">
-            Join GODMC. Earn Your Place in Valhalla. <span style="color:var(--gold)">Fly Dangerous.</span>
+            Join GODMC. Earn Your Place in Valhalla. <span class="accent-gold">Fly Dangerous.</span>
           </div>
 
           <div class="ceo-actions">
@@ -910,231 +936,261 @@
   </main>
 
   <script>
-    // Footer year
-    document.getElementById('y').textContent = new Date().getFullYear();
+    (() => {
+      'use strict';
 
-    // Reveal animations
-    const els = document.querySelectorAll('.card, .panel, .values, .join, .ceo-card, .shot, .fleet-banner, .embed-card');
-    els.forEach(el => el.classList.add('reveal'));
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('show'); });
-    }, { threshold: 0.12 });
-    els.forEach(el => io.observe(el));
+      const byId = (id) => document.getElementById(id);
 
-    // Twitch embed (auto parent= based on hostname)
-    (function () {
-      const iframe = document.getElementById('twitch-embed');
-      if (!iframe) return;
+      // Footer year
+      const yearEl = byId('y');
+      if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
-      const host = window.location.hostname || 'localhost';
-      const parents = [host];
+      // Reveal animations
+      const revealTargets = document.querySelectorAll(
+        '.card, .panel, .values, .join, .ceo-card, .shot, .fleet-banner, .embed-card'
+      );
 
-      // Cover both www + non-www automatically
-      if (host.startsWith('www.')) parents.push(host.slice(4));
-      else parents.push('www.' + host);
+      revealTargets.forEach((el) => el.classList.add('reveal'));
 
-      const uniqParents = Array.from(new Set(parents.filter(Boolean)));
-      const parentParams = uniqParents.map(p => 'parent=' + encodeURIComponent(p)).join('&');
-
-      const channel = 'eve_yg';
-      iframe.src = `https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&${parentParams}&autoplay=false&muted=true`;
-
-      // Twitch embeds often require HTTPS
-      if (window.location.protocol !== 'https:' && host !== 'localhost' && host !== '127.0.0.1') {
-        const card = iframe.closest('.embed-card');
-        if (card && !card.querySelector('.twitch-note')) {
-          const note = document.createElement('div');
-          note.className = 'twitch-note muted';
-          note.style.padding = '10px 14px';
-          note.textContent = 'If Twitch stays blank: Twitch embeds usually require HTTPS. Use the “Open on Twitch” button.';
-          card.appendChild(note);
-        }
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) e.target.classList.add('show');
+            });
+          },
+          { threshold: 0.12 }
+        );
+        revealTargets.forEach((el) => io.observe(el));
+      } else {
+        // Older browsers: just show everything
+        revealTargets.forEach((el) => el.classList.add('show'));
       }
+
+      // Twitch embed (auto parent= based on hostname)
+      (() => {
+        const iframe = byId('twitch-embed');
+        if (!iframe) return;
+
+        const host = window.location.hostname || 'localhost';
+        const parents = new Set([host]);
+
+        // Cover both www + non-www automatically
+        if (host.startsWith('www.')) parents.add(host.slice(4));
+        else parents.add(`www.${host}`);
+
+        const parentParams = Array.from(parents)
+          .filter(Boolean)
+          .map((p) => `parent=${encodeURIComponent(p)}`)
+          .join('&');
+
+        const channel = 'eve_yg';
+        iframe.src = `https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&${parentParams}&autoplay=false&muted=true`;
+
+        // Twitch embeds often require HTTPS
+        const isLocal = host === 'localhost' || host === '127.0.0.1';
+        if (window.location.protocol !== 'https:' && !isLocal) {
+          const card = iframe.closest('.embed-card');
+          if (card && !card.querySelector('.twitch-note')) {
+            const note = document.createElement('div');
+            note.className = 'twitch-note muted';
+            note.textContent =
+              'If Twitch stays blank: Twitch embeds usually require HTTPS. Use the “Open on Twitch” button.';
+            card.appendChild(note);
+          }
+        }
+      })();
+
+      // zKillboard feed (zKB API + ESI details, no iframe)
+      (() => {
+        const box = byId('zkb-feed');
+        if (!box) return;
+
+        const allianceId = 99014700;
+        const zkbUrl = `https://zkillboard.com/api/kills/allianceID/${allianceId}/`;
+        const REFRESH_MS = 120000; // 2 minutes
+        const MAX_KILLS = 10;
+        const CONCURRENCY = 3;
+
+        let inFlight = false;
+
+        async function fetchJson(url, opts) {
+          const res = await fetch(url, opts);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return await res.json();
+        }
+
+        async function fetchKillmailDetails(killmailId, hash) {
+          // zKB returns killmail_id + hash; use ESI for full details.
+          const esiUrl = `https://esi.evetech.net/latest/killmails/${killmailId}/${hash}/?datasource=tranquility`;
+          return await fetchJson(esiUrl, { headers: { Accept: 'application/json' } });
+        }
+
+        async function fetchNames(ids) {
+          const uniq = Array.from(new Set(ids.filter(Boolean)));
+          if (!uniq.length) return new Map();
+
+          const res = await fetch('https://esi.evetech.net/latest/universe/names/?datasource=tranquility', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(uniq)
+          });
+
+          if (!res.ok) throw new Error(`names HTTP ${res.status}`);
+
+          const arr = await res.json(); // [{category,id,name}, ...]
+          const map = new Map();
+          (Array.isArray(arr) ? arr : []).forEach((o) => map.set(o.id, o.name));
+          return map;
+        }
+
+        async function runWithLimit(items, limit, fn) {
+          const results = new Array(items.length);
+          let idx = 0;
+
+          const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+            while (idx < items.length) {
+              const i = idx++;
+              try {
+                results[i] = await fn(items[i]);
+              } catch {
+                results[i] = null;
+              }
+            }
+          });
+
+          await Promise.all(workers);
+          return results;
+        }
+
+        const eveTypeIcon = (typeId, size = 64) => `https://images.evetech.net/types/${typeId}/icon?size=${size}`;
+        const eveCharPortrait = (id, size = 64) => `https://images.evetech.net/characters/${id}/portrait?size=${size}`;
+        const eveCorpLogo = (id, size = 64) => `https://images.evetech.net/corporations/${id}/logo?size=${size}`;
+
+        async function loadZkbFeed() {
+          if (inFlight) return;
+          inFlight = true;
+
+          try {
+            box.innerHTML = '<div class="muted">Loading latest kills…</div>';
+
+            // 1) Get latest kill IDs + hashes (+ value) from zKB
+            const zkb = await fetchJson(zkbUrl, { headers: { Accept: 'application/json' } });
+
+            if (!Array.isArray(zkb) || zkb.length === 0) {
+              box.innerHTML = '<div class="muted">No recent kills found right now.</div>';
+              return;
+            }
+
+            const items = zkb
+              .slice(0, MAX_KILLS)
+              .map((k) => ({
+                killmail_id: k.killmail_id ?? k.killID ?? k.killmailID,
+                hash: k?.zkb?.hash,
+                value: k?.zkb?.totalValue ?? k?.zkb?.total_value ?? null
+              }))
+              .filter((x) => x.killmail_id && x.hash);
+
+            if (!items.length) {
+              box.innerHTML = '<div class="muted">No recent kills found right now.</div>';
+              return;
+            }
+
+            // 2) Fetch full killmail details from ESI (limited concurrency)
+            const details = await runWithLimit(items, CONCURRENCY, (it) =>
+              fetchKillmailDetails(it.killmail_id, it.hash)
+            );
+
+            // 3) Resolve IDs to names in one batch call
+            const idsToResolve = [];
+            details.forEach((d) => {
+              if (!d) return;
+              idsToResolve.push(d.solar_system_id);
+              const v = d.victim || {};
+              idsToResolve.push(v.character_id, v.ship_type_id, v.corporation_id, v.alliance_id);
+            });
+
+            let nameMap = new Map();
+            try {
+              nameMap = await fetchNames(idsToResolve);
+            } catch {
+              nameMap = new Map();
+            }
+
+            // 4) Render
+            const list = document.createElement('ul');
+
+            details.forEach((d, i) => {
+              const meta = items[i];
+              if (!d || !meta) return;
+
+              const v = d.victim || {};
+              const shipId = v.ship_type_id || null;
+              const charId = v.character_id || null;
+              const corpId = v.corporation_id || null;
+
+              const victimName =
+                charId && nameMap.get(charId) ? nameMap.get(charId) : charId ? `Pilot #${charId}` : 'Unknown victim';
+
+              const shipName =
+                shipId && nameMap.get(shipId) ? nameMap.get(shipId) : shipId ? `Ship #${shipId}` : '';
+
+              const systemName =
+                d.solar_system_id && nameMap.get(d.solar_system_id) ? nameMap.get(d.solar_system_id) : '';
+
+              const timeStr = d.killmail_time ? new Date(d.killmail_time).toLocaleString() : '';
+              const valueStr = meta.value ? `${Math.round(meta.value).toLocaleString()} ISK` : '';
+
+              const metaParts = [systemName, timeStr, valueStr].filter(Boolean);
+              const link = `https://zkillboard.com/kill/${meta.killmail_id}/`;
+
+              const imgs = `
+                <div class="kb-imgs">
+                  ${shipId ? `<img class="kb-img" src="${eveTypeIcon(shipId, 64)}" alt="Ship icon">` : ``}
+                  ${charId ? `<img class="kb-img round" src="${eveCharPortrait(charId, 64)}" alt="Pilot portrait">` : ``}
+                  ${corpId ? `<img class="kb-img round" src="${eveCorpLogo(corpId, 64)}" alt="Corporation logo">` : ``}
+                </div>
+              `;
+
+              const li = document.createElement('li');
+              li.innerHTML = `
+                <div class="left">
+                  ${imgs}
+                  <a href="${link}" target="_blank" rel="noopener">
+                    <b>${victimName}</b>${shipName ? ' — ' + shipName : ''}
+                  </a>
+                </div>
+                <span class="meta">${metaParts.join(' • ')}</span>
+              `;
+              list.appendChild(li);
+            });
+
+            // If ESI failed completely, show a clear fallback
+            if (!list.children.length) {
+              box.innerHTML =
+                '<div class="muted">Loaded kill IDs, but couldn’t fetch details (ESI blocked). Use “Open on zKillboard”.</div>';
+              return;
+            }
+
+            const updated = document.createElement('div');
+            updated.className = 'muted kb-updated';
+            updated.textContent = 'Updated: ' + new Date().toLocaleTimeString();
+
+            box.innerHTML = '';
+            box.appendChild(list);
+            box.appendChild(updated);
+          } catch {
+            box.innerHTML =
+              '<div class="muted">Couldn’t load the zKillboard feed (blocked by browser/network). Use “Open on zKillboard”.</div>';
+          } finally {
+            inFlight = false;
+          }
+        }
+
+        loadZkbFeed();
+        setInterval(loadZkbFeed, REFRESH_MS);
+      })();
     })();
-
-    // zKillboard feed (zKB API + ESI details, no iframe)
-(function () {
-  const box = document.getElementById('zkb-feed');
-  if (!box) return;
-
-  const allianceId = '99014700';
-  const zkbUrl = `https://zkillboard.com/api/kills/allianceID/${allianceId}/`;
-  const REFRESH_MS = 120000; // 2 minutes
-  const MAX_KILLS = 10;
-  const CONCURRENCY = 3;
-
-  let inFlight = false;
-
-  async function fetchJson(url, opts) {
-    const res = await fetch(url, opts);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  }
-
-  async function fetchKillmailDetails(killmailId, hash) {
-    // zKB's API returns (by default) a limited payload with killmail_id + hash.
-    // Use ESI to fetch the full killmail, including victim IDs (ship/character/corp).
-    const esiUrl = `https://esi.evetech.net/latest/killmails/${killmailId}/${hash}/?datasource=tranquility`;
-    return await fetchJson(esiUrl, { headers: { 'Accept': 'application/json' } });
-  }
-
-  async function fetchNames(ids) {
-    const uniq = Array.from(new Set(ids.filter(Boolean)));
-    if (!uniq.length) return new Map();
-
-    const res = await fetch('https://esi.evetech.net/latest/universe/names/?datasource=tranquility', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(uniq)
-    });
-
-    if (!res.ok) throw new Error(`names HTTP ${res.status}`);
-
-    const arr = await res.json(); // [{category,id,name}, ...]
-    const map = new Map();
-    (Array.isArray(arr) ? arr : []).forEach(o => map.set(o.id, o.name));
-    return map;
-  }
-
-  async function runWithLimit(items, limit, fn) {
-    const results = new Array(items.length);
-    let idx = 0;
-
-    const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-      while (idx < items.length) {
-        const i = idx++;
-        try {
-          results[i] = await fn(items[i]);
-        } catch (_) {
-          results[i] = null;
-        }
-      }
-    });
-
-    await Promise.all(workers);
-    return results;
-  }
-
-  const eveTypeIcon = (typeId, size = 64) => `https://images.evetech.net/types/${typeId}/icon?size=${size}`;
-  const eveCharPortrait = (id, size = 64) => `https://images.evetech.net/characters/${id}/portrait?size=${size}`;
-  const eveCorpLogo = (id, size = 64) => `https://images.evetech.net/corporations/${id}/logo?size=${size}`;
-
-  async function loadZkbFeed() {
-    if (inFlight) return;
-    inFlight = true;
-
-    try {
-      box.innerHTML = '<div class="muted">Loading latest kills…</div>';
-
-      // 1) Get latest kill IDs + hashes (+ value) from zKB
-      const zkb = await fetchJson(zkbUrl, { headers: { 'Accept': 'application/json' } });
-      if (!Array.isArray(zkb) || zkb.length === 0) {
-        box.innerHTML = '<div class="muted">No recent kills found right now.</div>';
-        return;
-      }
-
-      const items = zkb.slice(0, MAX_KILLS)
-        .map(k => ({
-          killmail_id: k.killmail_id ?? k.killID ?? k.killmailID,
-          hash: k?.zkb?.hash,
-          value: k?.zkb?.totalValue ?? k?.zkb?.total_value ?? null
-        }))
-        .filter(x => x.killmail_id && x.hash);
-
-      if (!items.length) {
-        box.innerHTML = '<div class="muted">No recent kills found right now.</div>';
-        return;
-      }
-
-      // 2) Fetch full killmail details from ESI (limited concurrency)
-      const details = await runWithLimit(items, CONCURRENCY, (it) => fetchKillmailDetails(it.killmail_id, it.hash));
-
-      // 3) Resolve IDs to names in one batch call
-      const idsToResolve = [];
-      details.forEach(d => {
-        if (!d) return;
-        idsToResolve.push(d.solar_system_id);
-        const v = d.victim || {};
-        idsToResolve.push(v.character_id, v.ship_type_id, v.corporation_id, v.alliance_id);
-      });
-
-      let nameMap = new Map();
-      try {
-        nameMap = await fetchNames(idsToResolve);
-      } catch (_) {
-        nameMap = new Map();
-      }
-
-      // 4) Render
-      const list = document.createElement('ul');
-
-      details.forEach((d, i) => {
-        const meta = items[i];
-        if (!d || !meta) return;
-
-        const v = d.victim || {};
-        const shipId = v.ship_type_id || null;
-        const charId = v.character_id || null;
-        const corpId = v.corporation_id || null;
-
-        const victimName = (charId && nameMap.get(charId)) ? nameMap.get(charId)
-                          : (charId ? `Pilot #${charId}` : 'Unknown victim');
-        const shipName = (shipId && nameMap.get(shipId)) ? nameMap.get(shipId)
-                        : (shipId ? `Ship #${shipId}` : '');
-        const systemName = (d.solar_system_id && nameMap.get(d.solar_system_id)) ? nameMap.get(d.solar_system_id) : '';
-        const timeStr = d.killmail_time ? new Date(d.killmail_time).toLocaleString() : '';
-        const valueStr = meta.value ? (Math.round(meta.value).toLocaleString() + ' ISK') : '';
-
-        const metaParts = [systemName, timeStr, valueStr].filter(Boolean);
-        const link = `https://zkillboard.com/kill/${meta.killmail_id}/`;
-
-        const imgs = `
-          <div class="kb-imgs">
-            ${shipId ? `<img class="kb-img" src="${eveTypeIcon(shipId, 64)}" alt="Ship">` : ``}
-            ${charId ? `<img class="kb-img round" src="${eveCharPortrait(charId, 64)}" alt="Pilot">` : ``}
-            ${corpId ? `<img class="kb-img round" src="${eveCorpLogo(corpId, 64)}" alt="Corp">` : ``}
-          </div>
-        `;
-
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <div class="left">
-            ${imgs}
-            <a href="${link}" target="_blank" rel="noopener">
-              <b>${victimName}</b>${shipName ? ' — ' + shipName : ''}
-            </a>
-          </div>
-          <span class="meta">${metaParts.join(' • ')}</span>
-        `;
-        list.appendChild(li);
-      });
-
-      // If ESI failed completely, show a clear fallback
-      if (!list.children.length) {
-        box.innerHTML = '<div class="muted">Loaded kill IDs, but couldn’t fetch details (ESI blocked). Use “Open on zKillboard”.</div>';
-        return;
-      }
-
-      const updated = document.createElement('div');
-      updated.className = 'muted';
-      updated.style.marginTop = '10px';
-      updated.style.fontSize = '12px';
-      updated.textContent = 'Updated: ' + new Date().toLocaleTimeString();
-
-      box.innerHTML = '';
-      box.appendChild(list);
-      box.appendChild(updated);
-    } catch (_) {
-      box.innerHTML = '<div class="muted">Couldn’t load the zKillboard feed (blocked by browser/network). Use “Open on zKillboard”.</div>';
-    } finally {
-      inFlight = false;
-    }
-  }
-
-  loadZkbFeed();
-  setInterval(loadZkbFeed, REFRESH_MS);
-})();
-
   </script>
 </body>
 </html>
