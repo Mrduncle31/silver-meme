@@ -12,11 +12,12 @@
 
   <!-- IMGUR NOTE: if any image fails to load, try swapping .png <-> .jpg in the i.imgur.com URL -->
 
-  <!-- Favicon: put these files in your repo root (same folder as index.html) -->
-  <link rel="icon" href="./favicon.ico?v=3" sizes="any" />
-  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png?v=3" />
-  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png?v=3" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=3" />
+  <!-- Favicon (browser tab icon) -->
+  <link rel="icon" href="https://i.imgur.com/Rdknv68.png?v=4" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.imgur.com/Rdknv68.png?v=4" />
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.imgur.com/Rdknv68.png?v=4" />
+  <link rel="apple-touch-icon" sizes="180x180" href="https://i.imgur.com/Rdknv68.png?v=4" />
+  <link rel="shortcut icon" href="https://i.imgur.com/Rdknv68.png?v=4" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -809,7 +810,7 @@
       <div class="embed-card">
         <div class="embed-head">
           <h3>zKillboard — GODMC Kills</h3>
-          <a class="btn small secondary" href="https://zkillboard.com/corporation/99014700/kills/" target="_blank" rel="noopener">Open on zKillboard</a>
+          <a class="btn small secondary" href="https://zkillboard.com/alliance/99014700/kills/" target="_blank" rel="noopener">Open on zKillboard</a>
         </div>
         <div id="zkb-feed" class="zkb-feed"><div class="muted">Loading latest kills…</div></div>
       </div>
@@ -939,8 +940,8 @@
   const box = document.getElementById('zkb-feed');
   if (!box) return;
 
-  const corpId = '99014700';
-  const url = `https://zkillboard.com/api/kills/corporationID/${corpId}/`;
+  const allianceId = '99014700';
+  const url = `https://zkillboard.com/api/kills/allianceID/${allianceId}/`;
   const REFRESH_MS = 120000; // 2 minutes
 
   let inFlight = false;
@@ -969,7 +970,7 @@
         const ship = k.victim?.ship_type_name ?? k.victim?.shipTypeName ?? '';
         const value = k.zkb?.totalValue ?? k.zkb?.total_value ?? null;
 
-        const link = id ? `https://zkillboard.com/kill/${id}/` : `https://zkillboard.com/corporation/${corpId}/kills/`;
+        const link = id ? `https://zkillboard.com/kill/${id}/` : `https://zkillboard.com/alliance/${allianceId}/kills/`;
         const metaParts = [];
         if (system) metaParts.push(system);
         if (time) metaParts.push(new Date(time).toLocaleString());
