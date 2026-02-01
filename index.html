@@ -952,55 +952,141 @@
       }
     })();
 
-    // zKillboard feed (uses zKB API, no iframe)
+    // zKillboard feed (zKB API + ESI details, no iframe)
 (function () {
   const box = document.getElementById('zkb-feed');
   if (!box) return;
 
   const allianceId = '99014700';
-  const url = `https://zkillboard.com/api/kills/allianceID/${allianceId}/`;
+  const zkbUrl = `https://zkillboard.com/api/kills/allianceID/${allianceId}/`;
   const REFRESH_MS = 120000; // 2 minutes
+  const MAX_KILLS = 10;
+  const CONCURRENCY = 3;
 
   let inFlight = false;
+
+  async function fetchJson(url, opts) {
+    const res = await fetch(url, opts);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  async function fetchKillmailDetails(killmailId, hash) {
+    // zKB's API returns (by default) a limited payload with killmail_id + hash.
+    // Use ESI to fetch the full killmail, including victim IDs (ship/character/corp).
+    const esiUrl = `https://esi.evetech.net/latest/killmails/${killmailId}/${hash}/?datasource=tranquility`;
+    return await fetchJson(esiUrl, { headers: { 'Accept': 'application/json' } });
+  }
+
+  async function fetchNames(ids) {
+    const uniq = Array.from(new Set(ids.filter(Boolean)));
+    if (!uniq.length) return new Map();
+
+    const res = await fetch('https://esi.evetech.net/latest/universe/names/?datasource=tranquility', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(uniq)
+    });
+
+    if (!res.ok) throw new Error(`names HTTP ${res.status}`);
+
+    const arr = await res.json(); // [{category,id,name}, ...]
+    const map = new Map();
+    (Array.isArray(arr) ? arr : []).forEach(o => map.set(o.id, o.name));
+    return map;
+  }
+
+  async function runWithLimit(items, limit, fn) {
+    const results = new Array(items.length);
+    let idx = 0;
+
+    const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (idx < items.length) {
+        const i = idx++;
+        try {
+          results[i] = await fn(items[i]);
+        } catch (_) {
+          results[i] = null;
+        }
+      }
+    });
+
+    await Promise.all(workers);
+    return results;
+  }
+
+  const eveTypeIcon = (typeId, size = 64) => `https://images.evetech.net/types/${typeId}/icon?size=${size}`;
+  const eveCharPortrait = (id, size = 64) => `https://images.evetech.net/characters/${id}/portrait?size=${size}`;
+  const eveCorpLogo = (id, size = 64) => `https://images.evetech.net/corporations/${id}/logo?size=${size}`;
 
   async function loadZkbFeed() {
     if (inFlight) return;
     inFlight = true;
 
     try {
-      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      box.innerHTML = '<div class="muted">Loading latest kills…</div>';
 
-      const data = await res.json();
-      if (!Array.isArray(data) || data.length === 0) {
+      // 1) Get latest kill IDs + hashes (+ value) from zKB
+      const zkb = await fetchJson(zkbUrl, { headers: { 'Accept': 'application/json' } });
+      if (!Array.isArray(zkb) || zkb.length === 0) {
         box.innerHTML = '<div class="muted">No recent kills found right now.</div>';
         return;
       }
 
+      const items = zkb.slice(0, MAX_KILLS)
+        .map(k => ({
+          killmail_id: k.killmail_id ?? k.killID ?? k.killmailID,
+          hash: k?.zkb?.hash,
+          value: k?.zkb?.totalValue ?? k?.zkb?.total_value ?? null
+        }))
+        .filter(x => x.killmail_id && x.hash);
+
+      if (!items.length) {
+        box.innerHTML = '<div class="muted">No recent kills found right now.</div>';
+        return;
+      }
+
+      // 2) Fetch full killmail details from ESI (limited concurrency)
+      const details = await runWithLimit(items, CONCURRENCY, (it) => fetchKillmailDetails(it.killmail_id, it.hash));
+
+      // 3) Resolve IDs to names in one batch call
+      const idsToResolve = [];
+      details.forEach(d => {
+        if (!d) return;
+        idsToResolve.push(d.solar_system_id);
+        const v = d.victim || {};
+        idsToResolve.push(v.character_id, v.ship_type_id, v.corporation_id, v.alliance_id);
+      });
+
+      let nameMap = new Map();
+      try {
+        nameMap = await fetchNames(idsToResolve);
+      } catch (_) {
+        nameMap = new Map();
+      }
+
+      // 4) Render
       const list = document.createElement('ul');
 
-      data.slice(0, 10).forEach(k => {
-        const id = k.killmail_id ?? k.killID ?? k.killmailID;
-        const time = k.killmail_time ?? k.killTime ?? k.time;
-        const system = k.solar_system_name ?? k.solarSystemName ?? '';
-        const victim = k.victim?.character_name ?? k.victim?.characterName ?? 'Unknown victim';
-        const ship = k.victim?.ship_type_name ?? k.victim?.shipTypeName ?? '';
-        const value = k.zkb?.totalValue ?? k.zkb?.total_value ?? null;
+      details.forEach((d, i) => {
+        const meta = items[i];
+        if (!d || !meta) return;
 
-        const link = id ? `https://zkillboard.com/kill/${id}/` : `https://zkillboard.com/alliance/${allianceId}/kills/`;
-        const metaParts = [];
-        if (system) metaParts.push(system);
-        if (time) metaParts.push(new Date(time).toLocaleString());
-        if (value) metaParts.push(Math.round(value).toLocaleString() + ' ISK');
+        const v = d.victim || {};
+        const shipId = v.ship_type_id || null;
+        const charId = v.character_id || null;
+        const corpId = v.corporation_id || null;
 
-        const li = document.createElement('li');
-        const shipId = k.victim?.ship_type_id ?? k.victim?.shipTypeID ?? null;
-        const charId = k.victim?.character_id ?? k.victim?.characterID ?? null;
-        const corpId = k.victim?.corporation_id ?? k.victim?.corporationID ?? null;
+        const victimName = (charId && nameMap.get(charId)) ? nameMap.get(charId)
+                          : (charId ? `Pilot #${charId}` : 'Unknown victim');
+        const shipName = (shipId && nameMap.get(shipId)) ? nameMap.get(shipId)
+                        : (shipId ? `Ship #${shipId}` : '');
+        const systemName = (d.solar_system_id && nameMap.get(d.solar_system_id)) ? nameMap.get(d.solar_system_id) : '';
+        const timeStr = d.killmail_time ? new Date(d.killmail_time).toLocaleString() : '';
+        const valueStr = meta.value ? (Math.round(meta.value).toLocaleString() + ' ISK') : '';
 
-        const eveTypeIcon = (typeId, size=64) => `https://images.evetech.net/types/${typeId}/icon?size=${size}`;
-        const eveCharPortrait = (id, size=64) => `https://images.evetech.net/characters/${id}/portrait?size=${size}`;
-        const eveCorpLogo = (id, size=64) => `https://images.evetech.net/corporations/${id}/logo?size=${size}`;
+        const metaParts = [systemName, timeStr, valueStr].filter(Boolean);
+        const link = `https://zkillboard.com/kill/${meta.killmail_id}/`;
 
         const imgs = `
           <div class="kb-imgs">
@@ -1010,11 +1096,12 @@
           </div>
         `;
 
+        const li = document.createElement('li');
         li.innerHTML = `
           <div class="left">
             ${imgs}
             <a href="${link}" target="_blank" rel="noopener">
-              <b>${victim}</b>${ship ? ' — ' + ship : ''}
+              <b>${victimName}</b>${shipName ? ' — ' + shipName : ''}
             </a>
           </div>
           <span class="meta">${metaParts.join(' • ')}</span>
@@ -1022,7 +1109,12 @@
         list.appendChild(li);
       });
 
-      // Add a small "Updated" line (optional, unobtrusive)
+      // If ESI failed completely, show a clear fallback
+      if (!list.children.length) {
+        box.innerHTML = '<div class="muted">Loaded kill IDs, but couldn’t fetch details (ESI blocked). Use “Open on zKillboard”.</div>';
+        return;
+      }
+
       const updated = document.createElement('div');
       updated.className = 'muted';
       updated.style.marginTop = '10px';
@@ -1032,17 +1124,17 @@
       box.innerHTML = '';
       box.appendChild(list);
       box.appendChild(updated);
-    } catch (err) {
+    } catch (_) {
       box.innerHTML = '<div class="muted">Couldn’t load the zKillboard feed (blocked by browser/network). Use “Open on zKillboard”.</div>';
     } finally {
       inFlight = false;
     }
   }
 
-  // Initial load + auto-refresh every 2 minutes while the page is open
   loadZkbFeed();
   setInterval(loadZkbFeed, REFRESH_MS);
 })();
+
   </script>
 </body>
 </html>
