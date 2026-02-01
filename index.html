@@ -13,11 +13,11 @@
   <!-- IMGUR NOTE: if any image fails to load, try swapping .png <-> .jpg in the i.imgur.com URL -->
 
   <!-- Favicon (browser tab icon) -->
-  <link rel="icon" href="https://i.imgur.com/Rdknv68.png?v=4" sizes="any" />
-  <link rel="icon" type="image/png" sizes="32x32" href="https://i.imgur.com/Rdknv68.png?v=4" />
-  <link rel="icon" type="image/png" sizes="16x16" href="https://i.imgur.com/Rdknv68.png?v=4" />
-  <link rel="apple-touch-icon" sizes="180x180" href="https://i.imgur.com/Rdknv68.png?v=4" />
-  <link rel="shortcut icon" href="https://i.imgur.com/Rdknv68.png?v=4" />
+  <link rel="icon" href="https://i.imgur.com/Rdknv68.png?v=5" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.imgur.com/Rdknv68.png?v=5" />
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.imgur.com/Rdknv68.png?v=5" />
+  <link rel="apple-touch-icon" sizes="180x180" href="https://i.imgur.com/Rdknv68.png?v=5" />
+  <link rel="shortcut icon" href="https://i.imgur.com/Rdknv68.png?v=5" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -622,8 +622,25 @@
     .zkb-feed{ padding: 14px; }
     .zkb-feed .muted{ color: rgba(255,255,255,.65); font-size: 14px; }
     .zkb-feed ul{ list-style:none; margin: 10px 0 0; padding:0; display:flex; flex-direction:column; gap:10px; }
-    .zkb-feed li{ display:flex; justify-content:space-between; gap:12px; padding:10px 12px; border-radius: 14px;
-      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.10); }
+    .zkb-feed li{
+      display:flex; justify-content:space-between; gap:14px;
+      padding:10px 12px; border-radius: 14px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.10);
+      align-items:center;
+    }
+    .zkb-feed .left{
+      display:flex; align-items:center; gap:12px; min-width:0;
+    }
+    .zkb-feed .kb-imgs{ display:flex; align-items:center; gap:10px; flex: 0 0 auto; }
+    .zkb-feed .kb-img{
+      width:40px; height:40px; object-fit:cover;
+      border-radius:12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.25);
+      transition: transform 120ms ease;
+    }
+    .zkb-feed .kb-img.round{ border-radius:999px; }
+    .zkb-feed .kb-img:hover{ transform: scale(2.1); z-index:5; }
     .zkb-feed a{ color: rgba(255,255,255,.92); text-decoration:none; }
     .zkb-feed a:hover{ text-decoration:underline; }
     .zkb-feed .meta{ color: rgba(255,255,255,.65); font-size: 13px; white-space:nowrap; }
@@ -977,10 +994,29 @@
         if (value) metaParts.push(Math.round(value).toLocaleString() + ' ISK');
 
         const li = document.createElement('li');
+        const shipId = k.victim?.ship_type_id ?? k.victim?.shipTypeID ?? null;
+        const charId = k.victim?.character_id ?? k.victim?.characterID ?? null;
+        const corpId = k.victim?.corporation_id ?? k.victim?.corporationID ?? null;
+
+        const eveTypeIcon = (typeId, size=64) => `https://images.evetech.net/types/${typeId}/icon?size=${size}`;
+        const eveCharPortrait = (id, size=64) => `https://images.evetech.net/characters/${id}/portrait?size=${size}`;
+        const eveCorpLogo = (id, size=64) => `https://images.evetech.net/corporations/${id}/logo?size=${size}`;
+
+        const imgs = `
+          <div class="kb-imgs">
+            ${shipId ? `<img class="kb-img" src="${eveTypeIcon(shipId, 64)}" alt="Ship">` : ``}
+            ${charId ? `<img class="kb-img round" src="${eveCharPortrait(charId, 64)}" alt="Pilot">` : ``}
+            ${corpId ? `<img class="kb-img round" src="${eveCorpLogo(corpId, 64)}" alt="Corp">` : ``}
+          </div>
+        `;
+
         li.innerHTML = `
-          <a href="${link}" target="_blank" rel="noopener">
-            <b>${victim}</b>${ship ? ' — ' + ship : ''}
-          </a>
+          <div class="left">
+            ${imgs}
+            <a href="${link}" target="_blank" rel="noopener">
+              <b>${victim}</b>${ship ? ' — ' + ship : ''}
+            </a>
+          </div>
           <span class="meta">${metaParts.join(' • ')}</span>
         `;
         list.appendChild(li);
